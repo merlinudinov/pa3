@@ -1,0 +1,75 @@
+---
+title: "Assignment 3"
+author: "Merlin Balihaxi"
+date: "2025-02-25"
+output: 
+  html_document: 
+    theme: cosmo
+---
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| label: package loading
+
+library(tidyverse)
+library(dplyr)
+library(untidydata)
+library(ds4ling)
+library(worldlanguages)
+library(languageR)
+data(package = "languageR") 
+data(package = "untidydata")
+data(package = "worldlanguages")
+```
+```{r}
+#| label: data tidying
+#| warning: FALSE
+#| message: FALSE
+
+# data tidying
+view(spanish_vowels)
+spanishvowel <- 
+  separate(data=spanish_vowels,
+    col = label,
+    into = c('participant','gender', 'vowel'),
+    sep = "-",
+    remove = FALSE
+  )
+```
+```{r}
+#| label: descriptive statistics
+#| warning: FALSE
+#| message: FALSE
+
+# descriptive statistics
+## vowel's f1 and f2 by gender summary
+by_vowel_gender <- group_by(spanishvowel, vowel, gender)
+vowel <- summarise(by_vowel_gender,
+                   f1_mean = mean(f1, na.rm = TRUE),
+                   f2_mean = mean(f2, na.rm = TRUE)
+)
+vowel <- arrange(vowel, gender, vowel)
+vowel
+
+```
+
+```{r}
+#| label: vowel plot and forced lm regression
+#| warning: FALSE
+#| message: FALSE
+
+# vowel plot with a regression line
+lmodel <- lm(f1 ~ f2, data = spanishvowel)
+summary(lmodel)
+
+# vowel plot using scatterplot, though it should not be a bivariate regression, I FORCED IT!
+spanishvowel |>
+  ggplot(aes(x = f2, y = f1)) +
+  geom_point(aes(color = gender, shape = vowel), alpha = 1/2) +
+  scale_x_reverse() +
+  scale_y_reverse() +
+  geom_smooth(method = "lm", aes(color=gender))
+```
+
+Summary: There (might) be five vowels in Spanish at least known from the data and the plot. I grouped the data by gender, and the result shows that female speakers tend to have higher f1 and f2 on all five vowels comparing to male speakers. The `forced' linear model shows that the higher the vowel's f2 is, the higher its f1 is. In other words, front vowels tend to be higher than back vowels in Spanish. Additionally, such tendency is seen significant from the model (** p < 0.01), with R square being 0.00958 (very low). [DON'T BELIEVE ANYTHING I SAY, IT IS A FORCED REGRESSION!]
